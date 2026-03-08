@@ -4,6 +4,18 @@ allprojects {
         mavenCentral()
     }
 }
+subprojects {
+    afterEvaluate {
+        val project = this
+        if (project.extensions.findByName("android") != null) {
+            configure<com.android.build.gradle.BaseExtension> {
+                if (namespace == null) {
+                    namespace = project.group.toString()
+                }
+            }
+        }
+    }
+}
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:sms_sender/feature/homeSceen/data/group_model.dart';
 
-// ignore: non_constant_identifier_names
 void CustomBottomSheet(BuildContext context) {
   final box = Hive.box<GroupModel>("groups");
   final TextEditingController groupController = TextEditingController();

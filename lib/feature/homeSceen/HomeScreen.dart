@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sms_sender/core/utils/custombottomsheet.dart';
 import 'package:sms_sender/feature/homeSceen/data/group_model.dart';
@@ -43,7 +43,7 @@ class HomeScreen extends StatelessWidget {
                   final group = box.getAt(index)!;
 
                   return Dismissible(
-                    key: Key(group.name + index.toString()),
+                    key: Key(box.keyAt(index).toString()),
 
                     /// swipe directions
                     direction: DismissDirection.horizontal,

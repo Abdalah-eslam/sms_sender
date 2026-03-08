@@ -52,7 +52,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
       );
     }
 
-    box.put(widget.groupIndex, widget.group);
+    widget.group.save();
 
     Navigator.pop(context);
   }

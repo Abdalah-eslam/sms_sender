@@ -4,7 +4,7 @@ import 'contact_model.dart';
 part 'group_model.g.dart';
 
 @HiveType(typeId: 1)
-class GroupModel {
+class GroupModel extends HiveObject {
   @HiveField(0)
   String name;
 
