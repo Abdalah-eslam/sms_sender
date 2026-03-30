@@ -10,55 +10,73 @@ void CustomBottomSheet(BuildContext context) {
     context: context,
     isScrollControlled: true,
     builder: (context) {
-      return Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Create New Group",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
             ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Create New Group",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: groupController,
+                  decoration: const InputDecoration(
+                    labelText: "Group name",
+                    border: OutlineInputBorder(),
+                    errorText: null,
+                  ),
+                  onChanged: (value) => setState(() {}),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: groupController.text.isEmpty
+                        ? null
+                        : () {
+                            final groupName = groupController.text.trim();
 
-            const SizedBox(height: 20),
+                            // Check if group name already exists
+                            final exists = box.values.any(
+                              (group) =>
+                                  group.name.toLowerCase() ==
+                                  groupName.toLowerCase(),
+                            );
 
-            TextField(
-              controller: groupController,
-              decoration: const InputDecoration(
-                labelText: "Group name",
-                border: OutlineInputBorder(),
-              ),
+                            if (exists) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Group name already exists"),
+                                ),
+                              );
+                              return;
+                            }
+
+                            final newGroup = GroupModel(
+                              name: groupName,
+                              contacts: [],
+                            );
+
+                            box.add(newGroup);
+                            groupController.clear();
+                            Navigator.pop(context);
+                          },
+                    child: const Text("Done"),
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                child: const Text("Done"),
-                onPressed: () {
-                  if (groupController.text.isEmpty) return;
-
-                  final newGroup = GroupModel(
-                    name: groupController.text,
-                    contacts: [],
-                  );
-
-                  box.add(newGroup);
-
-                  groupController.clear();
-
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       );
     },
   );

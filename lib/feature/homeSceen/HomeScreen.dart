@@ -20,7 +20,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _initializeAnimation();
+  }
 
+  void _initializeAnimation() {
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -144,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen>
 
                               if (confirm == true) {
                                 final deletedGroup = group;
-                                final deletedIndex = index;
                                 box.deleteAt(index);
 
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -180,64 +182,60 @@ class _HomeScreenState extends State<HomeScreen>
 
                             return false;
                           },
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => GroupDetailsScreen(
-                                    group: group,
-                                    groupIndex: index,
-                                  ),
-                                ),
-                              );
-                            },
+                          child: Material(
+                            color: Colors.white,
+                            elevation: 2,
                             borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => GroupDetailsScreen(
+                                      group: group,
+                                      groupIndex: index,
+                                    ),
                                   ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                                horizontal: 16,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        group.name,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 16,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          group.name,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "${group.contacts.length} contacts",
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "${group.contacts.length} contacts",
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Colors.grey,
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                    const Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Colors.grey,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

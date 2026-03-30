@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:hive/hive.dart';
 import 'package:sms_sender/feature/homeSceen/data/group_model.dart';
 import 'package:sms_sender/feature/homeSceen/data/contact_model.dart';
 
@@ -64,22 +63,24 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
 
   void search(String query) {
     final input = query.toLowerCase().trim();
+    if (input.isEmpty) {
+      setState(() => filteredContacts = List.from(contacts));
+      return;
+    }
+
+    final normalizedInput = input.replaceAll(RegExp(r'[\s\-]'), '');
 
     final results = contacts.where((contact) {
-      final name = contact.displayName.toLowerCase().trim();
+      final name = contact.displayName.toLowerCase();
+      final phone = contact.phones.first.number.replaceAll(
+        RegExp(r'[\s\-]'),
+        '',
+      );
 
-      final phone = contact.phones.first.number
-          .replaceAll(" ", "")
-          .replaceAll("-", "");
-
-      final searchPhone = input.replaceAll(" ", "").replaceAll("-", "");
-
-      return name.contains(input) || phone.contains(searchPhone);
+      return name.contains(input) || phone.contains(normalizedInput);
     }).toList();
 
-    setState(() {
-      filteredContacts = results;
-    });
+    setState(() => filteredContacts = results);
   }
 
   // 🎯 Highlight search text
@@ -121,18 +122,33 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
   }
 
   void addSelectedContacts() {
-    final box = Hive.box<GroupModel>("groups");
+    final existingPhones = widget.group.contacts.map((c) => c.phone).toSet();
+    int addedCount = 0;
 
     for (var contact in selectedContacts) {
-      widget.group.contacts.add(
-        ContactModel(
-          name: contact.displayName,
-          phone: contact.phones.first.number,
-        ),
-      );
+      final phone = contact.phones.first.number;
+
+      // Skip if contact already exists
+      if (!existingPhones.contains(phone)) {
+        widget.group.contacts.add(
+          ContactModel(name: contact.displayName, phone: phone),
+        );
+        addedCount++;
+      }
     }
 
     widget.group.save();
+
+    if (!mounted) return;
+
+    final message = addedCount == selectedContacts.length
+        ? "Added ${addedCount} contacts"
+        : "Added $addedCount contact(s), ${selectedContacts.length - addedCount} already exist";
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+
     Navigator.pop(context, true);
   }
 

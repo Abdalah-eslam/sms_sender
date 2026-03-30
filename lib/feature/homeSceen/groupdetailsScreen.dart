@@ -28,11 +28,10 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   }
 
   void deleteContact(int index) {
-    widget.group.contacts.removeAt(index);
-
-    widget.group.save();
-
-    setState(() {});
+    if (index >= 0 && index < widget.group.contacts.length) {
+      widget.group.contacts.removeAt(index);
+      widget.group.save();
+    }
   }
 
   @override
@@ -86,12 +85,9 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
               final removedContact = contact;
 
               // ❌ حذف
-              widget.group.contacts.removeAt(index);
-              widget.group.save();
+              deleteContact(index);
 
-              setState(() {});
-
-              // 🔥 Snackbar جامد
+              // 🔥 Snackbar with undo
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   behavior: SnackBarBehavior.floating,
@@ -118,7 +114,6 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                       }
 
                       widget.group.save();
-                      setState(() {});
                     },
                   ),
                 ),

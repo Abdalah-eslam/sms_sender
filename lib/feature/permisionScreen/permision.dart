@@ -49,6 +49,6 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: HomeScreen());
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
