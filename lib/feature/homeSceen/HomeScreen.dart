@@ -1,31 +1,62 @@
 import 'package:flutter/material.dart';
-
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sms_sender/core/utils/custombottomsheet.dart';
 import 'package:sms_sender/feature/homeSceen/data/group_model.dart';
 import 'package:sms_sender/feature/homeSceen/groupdetailsScreen.dart';
 import 'package:sms_sender/feature/homeSceen/sendmassgeTogroupScreen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final box = Hive.box<GroupModel>("groups");
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Groups")),
-
+      appBar: AppBar(title: const Text("Groups"), centerTitle: true),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           CustomBottomSheet(context);
         },
         child: const Icon(Icons.add),
       ),
-
       body: ValueListenableBuilder(
         valueListenable: box.listenable(),
         builder: (context, box, _) {
+          if (box.isEmpty) {
+            return const Center(
+              child: Text("No groups yet!", style: TextStyle(fontSize: 18)),
+            );
+          }
+
           return CustomScrollView(
             slivers: [
               const SliverToBoxAdapter(
@@ -37,113 +68,180 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final group = box.getAt(index)!;
 
-                  return Dismissible(
-                    key: Key(box.keyAt(index).toString()),
-
-                    /// swipe directions
-                    direction: DismissDirection.horizontal,
-
-                    /// background عند السحب لليمين
-                    background: Container(
-                      color: Colors.green,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      alignment: Alignment.centerLeft,
-                      child: const Icon(
-                        Icons.sms,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-
-                    /// background عند السحب للشمال
-                    secondaryBackground: Container(
-                      color: Colors.red,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      alignment: Alignment.centerRight,
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-
-                    confirmDismiss: (direction) async {
-                      /// لو السحب للشمال (حذف)
-                      if (direction == DismissDirection.endToStart) {
-                        final confirm = await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Delete Group"),
-                              content: const Text(
-                                "Are you sure you want to delete this group?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, false);
-                                  },
-                                  child: const Text("Cancel"),
-                                ),
-
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, true);
-                                  },
-                                  child: const Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (confirm == true) {
-                          box.deleteAt(index);
-                          return true;
-                        }
-
-                        return false;
-                      }
-
-                      /// السحب لليمين (ارسال رسالة)
-                      if (direction == DismissDirection.startToEnd) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                SendGroupMessageScreen(group: group),
-                          ),
-                        );
-                        return false;
-                      }
-
-                      return false;
-                    },
-
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GroupDetailsScreen(
-                              group: group,
-                              groupIndex: index,
+                  return FadeTransition(
+                    opacity: _animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero,
+                      ).animate(_animation),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Dismissible(
+                          key: Key(box.keyAt(index).toString()),
+                          direction: DismissDirection.horizontal,
+                          background: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            alignment: Alignment.centerLeft,
+                            child: const Icon(
+                              Icons.sms,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ),
-                        );
-                      },
-                      child: ListTile(
-                        title: Text(group.name),
-                        subtitle: Text("${group.contacts.length} contacts"),
-                        trailing: const Icon(Icons.arrow_forward_ios),
+                          secondaryBackground: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            alignment: Alignment.centerRight,
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.endToStart) {
+                              final confirm = await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text("Delete Group"),
+                                    content: const Text(
+                                      "Are you sure you want to delete this group?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirm == true) {
+                                final deletedGroup = group;
+                                final deletedIndex = index;
+                                box.deleteAt(index);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "${deletedGroup.name} deleted",
+                                    ),
+                                    action: SnackBarAction(
+                                      label: "UNDO",
+                                      onPressed: () {
+                                        box.add(deletedGroup);
+                                      },
+                                    ),
+                                  ),
+                                );
+
+                                return true;
+                              }
+
+                              return false;
+                            }
+
+                            if (direction == DismissDirection.startToEnd) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SendGroupMessageScreen(group: group),
+                                ),
+                              );
+                              return false;
+                            }
+
+                            return false;
+                          },
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => GroupDetailsScreen(
+                                    group: group,
+                                    groupIndex: index,
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 16,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        group.name,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "${group.contacts.length} contacts",
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: Colors.grey,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   );
