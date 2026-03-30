@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sms_sender/core/utils/custombottomsheet.dart';
+import 'package:sms_sender/feature/backupScreen/backup_screen.dart';
 import 'package:sms_sender/feature/homeSceen/data/group_model.dart';
 import 'package:sms_sender/feature/homeSceen/groupdetailsScreen.dart';
 import 'package:sms_sender/feature/homeSceen/sendmassgeTogroupScreen.dart';
@@ -44,7 +45,26 @@ class _HomeScreenState extends State<HomeScreen>
     final box = Hive.box<GroupModel>("groups");
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Groups"), centerTitle: true),
+      appBar: AppBar(
+        title: const Text("Groups"),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.backup),
+            tooltip: 'Backup & Restore',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BackupScreen()),
+              );
+              // Refresh groups if backup was restored
+              if (result == true) {
+                setState(() {});
+              }
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           CustomBottomSheet(context);
